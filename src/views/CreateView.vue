@@ -34,7 +34,7 @@ const submit = async () => {
         });
     } else {
         await axios.post(
-            `http://localhost:5000/update/${_id.value}`,
+            `${API_PATH}/update/${_id.value}`,
             req
         ).then((response) => {
             router.push({name : 'home', replace: true});
