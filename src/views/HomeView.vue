@@ -49,7 +49,7 @@
       });
     return data;
   };
-  const destroy = async (pro_id) => {
+  const destroy = async (_id) => {
     await axios.delete(`${API_PATH}/delete/${_id}`).then(async (response) => {
       products.value = await getAllProduct();
     });
