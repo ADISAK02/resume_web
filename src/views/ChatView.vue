@@ -7,7 +7,9 @@ import {
     ref as refDb,
     set,
     push,
-    onValue
+    onValue,
+    child,
+    get
 } from '../firebaseConfig'
 import { remove } from 'firebase/database';
 let chat = ref("");
@@ -28,12 +30,13 @@ const onSend = () => {
     }
 }
 onValue(db, (snapshot) => {
-    const data = snapshot.val();
-    histories.value = data;
-});
+    histories.value = snapshot.val() ?? [];
+})
+
 onUpdated(histories, (newHistories, oldHistories) => {
     bottomEl.value.scrollIntoview({ behavier: 'smooth' });
 });
+
 const selectGroup = (key) => {
     historyKey.value = key;
 }
@@ -41,16 +44,24 @@ const selectGroup = (key) => {
 let groupChatName = ref("")
 const createGroup = () => {
     if (groupChatName.value != '') {
-        push(refDb(database, `all_chat/${groupChatName.value}`), {
-            "user": studentId,
-            "message": '',
-            "dateTime": new Date().toISOString()
-        });
-        groupChatName.value = '';
+        get(child(db, `${groupChatName.value}`)).then((snapshot) => {
+            if (snapshot.exists()) {
+                alert("Cannot create chat becaue chat is exists.")
+            } else {
+                push(refDb(database, `all_chat/${groupChatName.value}`), {
+                    "user": studentId,
+                    "message": '',
+                    "dateTime": new Date().toISOString()
+                });
+            }
+            groupChatName.value = '';
+        }).catch((err) => {
+            console.error(err);
+        })
     }
 }
 
-const delGroup =(data) =>{
+const delGroup = (data) => {
     remove(refDb(database, `all_chat/${data}`));
 }
 </script>
@@ -64,7 +75,7 @@ const delGroup =(data) =>{
                     v-for="(group, index) in histories" :key="index" data-theme="night" @click="selectGroup(index)">
                     <div class="card-body">
                         <h2 class="card-title">{{ index }}</h2>
-                        <p>{{ group[Object.keys(group)[Object.keys(group).length - 1]].message }}</p>
+                        <p>{{ group[Object.keys(group)[Object.keys(group).length - 1]]?.message }}</p>
                         <button class="btn" @click="delGroup(index)">❌</button>
                     </div>
                 </div>
